@@ -34,14 +34,23 @@ def add_quarter_index(data):
     return data
 
 
-def generate_train_test(data):
-    # TODO: train test split
-    raise NotImplementedError
+def train_test_split(data):
+    m = min(data['quarter_ind'])
+    n = max(data['quarter_ind'])
+    idx_seq = sorted(list(data['quarter_ind'].unique()))
+    idx_list = []
+    for i in range(m-1, n-3):
+        idx_list.append(idx_seq[i: i + 4])
+    return idx_list
 
 
-def train(data):
+def train(model, data):
     # TODO: train model
-    raise NotImplementedError
+    idx_list = train_test_split(data)
+    for idx in idx_list:
+        train_data = data[data['quarter_ind'].isin(idx[:2])]
+        test_data = data[data['quarter_ind'] == idx[3]]
+    return None
 
 
 def test(data):

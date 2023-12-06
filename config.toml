@@ -3,7 +3,7 @@
 # - Primary Developers/Contacts: Zexi Li, Wensi Wang, Xi Zeng, Yumeng Zhang
 # =========================================================================
 
-output_directory = ""
+data_directory = "data/ASSAULT.csv"
 
 [proc]
     run_ffn             = true

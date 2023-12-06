@@ -2,10 +2,14 @@ import pandas as pd
 import numpy as np
 import os
 import toml
+
+from os import listdir
+from os.path import isfile, join
 from typing import Dict, List
 from .utils import *
 from .Request import *
 from .DataProvider import *
+from .models import fnn
 
 
 class CrimePredictionApp(object):
@@ -13,13 +17,13 @@ class CrimePredictionApp(object):
                  run_ffn: bool,
                  run_cnn: bool,
                  run_rnn: bool,
-                 output_dir: str):
+                 app_dir: str):
 
         self._run_ffn = run_ffn
         self._run_cnn = run_cnn
         self._run_rnn = run_rnn
 
-        self._output_dir = output_dir
+        self._output_dir = app_dir + "/output"
         # create_missing_dirs(self._output_dir)
 
     def _main(self, requests):
@@ -33,6 +37,8 @@ class CrimePredictionApp(object):
 
     def _main_ffn(self, data, config):
         # TODO:
+        # model = fnn.FeedforwardNetwork()
+        # train(model, data)
         raise NotImplementedError
 
     def _main_cnn(self, data, config):
@@ -56,16 +62,31 @@ class CrimePredictionApp(object):
         run_ffn = proc.get("run_ffn")
         run_cnn = proc.get("run_cnn")
         run_rnn = proc.get("run_rnn")
-        output_dir = d.get("output_directory")
+        app_dir = d.get("app_directory", os.getcwd())
 
-        return cls(run_ffn=run_ffn, run_cnn=run_cnn, run_rnn=run_rnn, output_dir=output_dir)
+        return cls(run_ffn=run_ffn, run_cnn=run_cnn, run_rnn=run_rnn, app_dir=app_dir)
 
     @staticmethod
     def build_requests_from_dict(d: dict):
         requests = []
 
-        # TODO: get data from data provider
-        data = np.array([])
+        # LOAD DATA
+        app_dir = os.getcwd()
+        data_path = app_dir + '/' + d.get("data_directory", "data")
+        if data_path.endswith('.csv'):
+            data = pd.read_csv(data_path)
+        else:
+            files = [f for f in listdir(data_path) if isfile(join(data_path, f)) if f.endswith(".csv")]
+            dfL = []
+            for file in files:
+                crime_type = file.split('.')[0]
+                df = pd.read_csv(data_path + '/' + file)
+                df['Crime Type'] = crime_type
+                dfL.append(df)
+            data = pd.concat(dfL, ignore_index=True)
+        data = add_quarter_index(data)
+
+        # Configs
         config = d.get("config")
         ffn_config = config.get("ffn")
         cnn_config = config.get("cnn")
