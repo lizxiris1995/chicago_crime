@@ -1,5 +1,6 @@
 import os
 import os.path
+import pandas as pd
 
 
 def create_missing_dirs(path):
@@ -21,6 +22,16 @@ def create_missing_dirs(path):
                 os.makedirs(dir_)
             except FileExistsError:
                 pass
+
+
+def add_quarter_index(data):
+    """
+    :param data: pandas dataframe
+    :return: dataframe with quarter index added
+    """
+    data['quarter_ind'] = ((pd.to_datetime(data.Date).dt.month
+                         + (pd.to_datetime(data.Date).dt.year-2011)*12-1)//3+1)
+    return data
 
 
 def generate_train_test(data):
