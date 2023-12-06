@@ -1,0 +1,17 @@
+# =========================================================================
+# Generic Crime Prediction Tool
+# - Primary Developers/Contacts: Zexi Li, Wensi Wang, Xi Zeng, Yumeng Zhang
+# =========================================================================
+
+output_directory = ""
+
+[proc]
+    run_ffn             = true
+    run_cnn             = true
+    run_rnn             = true
+
+[config.ffn]
+
+[config.cnn]
+
+[config.rnn]
