@@ -12,6 +12,14 @@ from .DataProvider import *
 from .models import fnn
 
 
+feature_list = ['is_Weekend', 'Holiday', '5d rolling avg', '30 rolling avg',
+                'precipitation', 'Average Temp Norm', 'total population',
+                'median income', '% 25 older', '% married', '% highschool graduates',
+                '% foreign', '% poverty', '% own house', 'rides', 'housing_price_1b',
+                'housing_price_2b', 'housing_price_3b']
+label = 'Bin'
+
+
 class CrimePredictionApp(object):
     def __init__(self,
                  run_ffn: bool,
@@ -36,10 +44,15 @@ class CrimePredictionApp(object):
                 self._main_rnn(request.input_data, request.rnn_config)
 
     def _main_ffn(self, data, config):
-        # TODO:
-        # model = fnn.FeedforwardNetwork()
-        # train(model, data)
-        raise NotImplementedError
+
+        data.fillna(0)
+
+        num_wards = len(data['Ward'].unique())
+        num_features = len(feature_list)
+        num_bin = int(np.nanmax(data['Bin'].unique()))
+
+        model = fnn.FeedforwardNetwork(num_features, 10, num_bin)
+        train_model(model, data, self._output_dir, **config)
 
     def _main_cnn(self, data, config):
         # TODO:

@@ -11,7 +11,16 @@ data_directory = "data/ASSAULT.csv"
     run_rnn             = true
 
 [config.ffn]
+    batch_size          = 32
+    shuffle             = true
+    learning_rate       = 0.001
+    reg                 = 0.0005
+    momentum            = 0.9
+    loss_type           = 'CE'
+    save_best           = true
 
 [config.cnn]
+    batch_size          = 5
+    shuffle             = true
 
 [config.rnn]
