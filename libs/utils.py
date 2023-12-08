@@ -43,6 +43,7 @@ def accuracy(output, target):
 
     _, pred = torch.max(output, dim=-1)
 
+    target = torch.flatten(target)
     correct = pred.eq(target).sum() * 1.0
 
     acc = correct / batch_size
@@ -126,10 +127,9 @@ def convert_pandas_to_tensor(model, data):
         labels = labels.values.reshape(num_dates*num_wards, 1)
     elif isinstance(model, cnn.ConvolutionalNetwork):
         features = features.values.reshape((num_dates, 5, 10, num_features))
-        labels, _ = regenerate_label(data)
         # channel should be on the second dimension
         features = np.transpose(features, (0, 3, 1, 2))
-        labels = labels[label].values
+        labels = labels.values.reshape(num_dates, num_wards)
 
     features_tensor = torch.Tensor(features)
     labels_tensor = torch.Tensor(labels)
@@ -212,6 +212,8 @@ def train(model, train_data, batch_size, shuffle, epoch, optimizer, criterion):
         start = time.time()
 
         out = model(data)
+        if isinstance(model, cnn.ConvolutionalNetwork):
+            target = torch.reshape(target, (-1, 1))
         loss = criterion(out, torch.flatten(target).long())
         optimizer.zero_grad()
         loss.backward()
@@ -251,6 +253,8 @@ def validate(model, test_data, batch_size, shuffle, epoch, criterion):
 
     for idx, (data, target) in enumerate(loader):
         target = target - 1
+        if isinstance(model, cnn.ConvolutionalNetwork):
+            target = torch.reshape(target, (-1, 1))
         start = time.time()
 
         with torch.no_grad():
