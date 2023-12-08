@@ -59,8 +59,7 @@ class CrimePredictionApp(object):
         data = data.sort_values(by=['Date', 'Ward'])
 
         num_features = len(feature_list)
-        _, num_bin = regenerate_label(data)
-        print(num_bin)
+        num_bin = int(np.nanmax(data['Bin'].unique()))
         model = cnn.ConvolutionalNetwork(num_features, num_bin)
         train_model(model, data, self._output_dir, **config)
 
