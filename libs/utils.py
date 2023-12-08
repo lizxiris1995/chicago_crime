@@ -1,12 +1,13 @@
 import os
 import os.path
 import pandas as pd
+import numpy as np
 import time
 import copy
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
-from .models import fnn
+from .models import fnn, cnn
 
 
 feature_list = ['is_Weekend', 'Holiday', '5d rolling avg', '30 rolling avg',
@@ -90,6 +91,24 @@ def train_test_split(data):
     return idx_list
 
 
+def regenerate_label(data):
+    """
+    regenerate the label based on total number of crimes across all wards
+    bucket counts into bins
+    :param data: pandas dataframe
+    :return labels dataframe that has column: date, total counts and bins
+    """
+    #TODO: make the bins resonable for other crime types
+    labels_df = data.groupby('Date')['Counts'].sum()
+    labels_df = pd.DataFrame(labels_df.shift(-1, fill_value=0)).reset_index()
+
+    bins = [-np.inf, 50, 100, 150, 200, 250, 300, np.inf]
+    bins_label = [0, 1, 2, 3, 4, 5, 6]
+    num_bins = len(bins_label)
+    labels_df['Bin'] = pd.cut(labels_df['Counts'], bins=bins, labels=bins_label, right=False)
+    return labels_df, num_bins
+
+
 def convert_pandas_to_tensor(model, data):
     """
     Convert pandas dataframe to torch tensor dataset
@@ -105,10 +124,12 @@ def convert_pandas_to_tensor(model, data):
     if isinstance(model, fnn.FeedforwardNetwork):
         features = features.values.reshape((num_dates*num_wards, num_features))
         labels = labels.values.reshape(num_dates*num_wards, 1)
-    else:
-        #TODO: elif model is cnn
+    elif isinstance(model, cnn.ConvolutionalNetwork):
         features = features.values.reshape((num_dates, 5, 10, num_features))
-        labels = labels.values.reshape((num_dates, 5, 10, 1))
+        labels, _ = regenerate_label(data)
+        # channel should be on the second dimension
+        features = np.transpose(features, (0, 3, 1, 2))
+        labels = labels[label].values
 
     features_tensor = torch.Tensor(features)
     labels_tensor = torch.Tensor(labels)

@@ -9,7 +9,7 @@ from typing import Dict, List
 from .utils import *
 from .Request import *
 from .DataProvider import *
-from .models import fnn
+from .models import fnn, cnn
 
 
 feature_list = ['is_Weekend', 'Holiday', '5d rolling avg', '30 rolling avg',
@@ -55,8 +55,15 @@ class CrimePredictionApp(object):
         train_model(model, data, self._output_dir, **config)
 
     def _main_cnn(self, data, config):
-        # TODO:
-        raise NotImplementedError
+
+        data = data.sort_values(by=['Date', 'Ward'])
+
+        num_features = len(feature_list)
+        _, num_bin = regenerate_label(data)
+        print(num_bin)
+        model = cnn.ConvolutionalNetwork(num_features, num_bin)
+        train_model(model, data, self._output_dir, **config)
+
 
     def _main_rnn(self, data, config):
         # TODO:
