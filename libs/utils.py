@@ -208,10 +208,11 @@ def train(model, train_data, batch_size, shuffle, epoch, optimizer, criterion):
     loader = DataLoader(data, batch_size=batch_size, shuffle=shuffle)
     outputL = []
     for idx, (data, target) in enumerate(loader):
+        target = target - 1
         start = time.time()
 
         out = model(data)
-        loss = criterion(out, torch.flatten(target-1).long())
+        loss = criterion(out, torch.flatten(target).long())
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -249,11 +250,12 @@ def validate(model, test_data, batch_size, shuffle, epoch, criterion):
     loader = DataLoader(data, batch_size=batch_size, shuffle=shuffle)
 
     for idx, (data, target) in enumerate(loader):
+        target = target - 1
         start = time.time()
 
         with torch.no_grad():
             out = model(data)
-            loss = criterion(out, torch.flatten(target-1).long())
+            loss = criterion(out, torch.flatten(target).long())
 
         batch_acc = accuracy(out, target)
 
