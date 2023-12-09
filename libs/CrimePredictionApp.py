@@ -63,7 +63,6 @@ class CrimePredictionApp(object):
         model = cnn.ConvolutionalNetwork(num_features, num_bin)
         train_model(model, data, self._output_dir, **config)
 
-
     def _main_rnn(self, data, config):
         # TODO:
         raise NotImplementedError

@@ -6,6 +6,7 @@ import time
 import copy
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader
 from .models import fnn, cnn
 
@@ -37,6 +38,28 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
+class FocalLoss(nn.Module):
+    def __init__(self, weight=None, gamma=0.):
+        super(FocalLoss, self).__init__()
+        assert gamma >= 0
+        self.gamma = gamma
+        self.weight = weight
+
+    def forward(self, input, target):
+        """
+        Implement forward of focal loss
+        :param input: input predictions
+        :param target: labels
+        :return: tensor of focal loss in scalar
+        """
+
+        z_i = F.cross_entropy(input=input, target=target, weight=self.weight.float(), reduction='none')
+        p_t = torch.exp(-z_i) / torch.sum(torch.exp(-z_i))
+        loss = ((1 - p_t) ** self.gamma * z_i).mean()
+
+        return loss
+
+
 def accuracy(output, target):
     """Computes the precision@k for the specified values of k"""
     batch_size = target.shape[0]
@@ -49,6 +72,21 @@ def accuracy(output, target):
     acc = correct / batch_size
 
     return acc
+
+
+def reweight(cls_num_list, beta=0.9999):
+    """
+    Implement reweighting by effective numbers
+    :param cls_num_list: a list containing # of samples of each class
+    :param beta: hyper-parameter for reweighting, see paper for more details
+    :return:
+    """
+
+    N = np.array(cls_num_list)
+    factor = (1 - beta) / (1 - np.power(beta, N))
+    per_cls_weights = torch.tensor(factor / np.sum(factor) * len(N))
+
+    return per_cls_weights
 
 
 def create_missing_dirs(path):
@@ -147,13 +185,18 @@ def train_model(model,
                 reg=0.0005,
                 momentum=0.9,
                 loss_type='CE',
-                save_best=True):
+                save_best=True,
+                beta=0.999):
     data['Bin'] = data['Bin'].fillna(1)
     data = data.fillna(0)
-    data[feature_list] = (data[feature_list]-data[feature_list].mean())/data[feature_list].std()
+    # data[feature_list] = (data[feature_list]-data[feature_list].mean())/data[feature_list].std()
 
     if loss_type == "CE":
         criterion = nn.CrossEntropyLoss()
+    elif loss_type == 'Focal':
+        cls_num_list = data.groupby('Bin')['Bin'].count().to_list()
+        per_cls_weights = reweight(cls_num_list, beta=beta)
+        criterion = FocalLoss(weight=per_cls_weights, gamma=1)
     else:
         raise ValueError(f'Loss type {loss_type} is currently not supported.')
 

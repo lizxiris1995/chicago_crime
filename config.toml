@@ -16,11 +16,18 @@ data_directory = "data/ASSAULT.csv"
     learning_rate       = 0.001
     reg                 = 0.0005
     momentum            = 0.9
-    loss_type           = 'CE'
+    loss_type           = 'Focal'
     save_best           = true
+    beta                = 0.999
 
 [config.cnn]
     batch_size          = 5
     shuffle             = true
+    learning_rate       = 0.001
+    reg                 = 0.0005
+    momentum            = 0.9
+    loss_type           = 'CE'
+    save_best           = true
+    beta                = 0.999
 
 [config.rnn]
