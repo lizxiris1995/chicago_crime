@@ -21,13 +21,13 @@ data_directory = "data/ASSAULT.csv"
     beta                = 0.999
 
 [config.cnn]
-    batch_size          = 5
+    batch_size          = 4
     shuffle             = true
     learning_rate       = 0.001
     reg                 = 0.0005
-    momentum            = 0.9
-    loss_type           = 'CE'
+    momentum            = 0.95
+    loss_type           = 'Focal'
     save_best           = true
-    beta                = 0.999
+    beta                = 0.995
 
 [config.rnn]
