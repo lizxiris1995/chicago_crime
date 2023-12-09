@@ -35,24 +35,31 @@ class CrimePredictionApp(object):
         # create_missing_dirs(self._output_dir)
 
     def _main(self, requests):
+        resL = []
         for request in requests:
             if self._run_ffn:
-                self._main_ffn(request.input_data, request.ffn_config)
+                res_ffn = self._main_ffn(request.input_data, request.ffn_config)
+                resL.append(res_ffn)
             if self._run_cnn:
-                self._main_cnn(request.input_data, request.cnn_config)
+                res_cnn = self._main_cnn(request.input_data, request.cnn_config)
+                resL.append(res_cnn)
             if self._run_rnn:
-                self._main_rnn(request.input_data, request.rnn_config)
+                res_rnn = self._main_rnn(request.input_data, request.rnn_config)
+                resL.append(res_rnn)
+        res = pd.concat(resL, ignore_index=True)
+        return res
 
     def _main_ffn(self, data, config):
 
         data.fillna(0)
 
-        num_wards = len(data['Ward'].unique())
         num_features = len(feature_list)
         num_bin = int(np.nanmax(data['Bin'].unique()))
 
         model = fnn.FeedforwardNetwork(num_features, 10, num_bin)
-        train_model(model, data, self._output_dir, **config)
+        best_model = train_model(model, data, self._output_dir, **config)
+
+        return best_model
 
     def _main_cnn(self, data, config):
 
@@ -62,17 +69,21 @@ class CrimePredictionApp(object):
         num_features = len(feature_list)
         num_bin = int(np.nanmax(data['Bin'].unique()))
         model = cnn.ConvolutionalNetwork(num_features, num_bin)
-        train_model(model, data, self._output_dir, **config)
+        best_model = train_model(model, data, self._output_dir, **config)
+
+        return best_model
 
     def _main_rnn(self, data, config):
-        # TODO:
+
         data = data.sort_values(by=['Date', 'Ward'])
         data.fillna(0)
 
         num_features = len(feature_list)
         num_bin = int(np.nanmax(data['Bin'].unique()))
         model = rnn.RecurrentNeuralNetwork(num_features, num_bin)
-        train_model(model, data, self._output_dir, **config)
+        best_model = train_model(model, data, self._output_dir, **config)
+
+        return best_model
 
     @classmethod
     def from_toml(cls, file: str):

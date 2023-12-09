@@ -241,15 +241,17 @@ def train_model(model,
     outputL[-1].to_csv(output_dir + f'/{model.model_name}_pred.csv')
 
     print('Best Prec @1 Acccuracy: {:.4f}'.format(best))
+    best_model_stats = pd.DataFrame({"Best Prec @1 Accy": [best.item()]})
     per_cls_acc = best_cm.diag().detach().numpy().tolist()
     for i, acc_i in enumerate(per_cls_acc):
         print("Accuracy of Class {}: {:.4f}".format(i, acc_i))
+        best_model_stats[f"Accuracy of Class {i}"] = acc_i
 
     if save_best:
         torch.save(best_model.state_dict(),
                    output_dir + '/' + model.model_name + '.pth')
 
-    return None
+    return best_model_stats
 
 
 def train(model, train_data, batch_size, shuffle, epoch, optimizer, criterion):
