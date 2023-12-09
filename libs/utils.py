@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader
-from .models import fnn, cnn
+from .models import fnn, cnn, rnn
 
 
 feature_list = ['is_Weekend', 'Holiday', '5d rolling avg', '30 rolling avg',
@@ -17,6 +17,7 @@ feature_list = ['is_Weekend', 'Holiday', '5d rolling avg', '30 rolling avg',
                 '% foreign', '% poverty', '% own house', 'rides', 'housing_price_1b',
                 'housing_price_2b', 'housing_price_3b']
 label = 'Bin'
+num_wards = 50
 
 
 class AverageMeter(object):
@@ -60,9 +61,11 @@ class FocalLoss(nn.Module):
         return loss
 
 
-def accuracy(output, target):
+def accuracy(output, target, model):
     """Computes the precision@k for the specified values of k"""
     batch_size = target.shape[0]
+    if isinstance(model, rnn.RecurrentNeuralNetwork):
+        batch_size = batch_size*num_wards
 
     _, pred = torch.max(output, dim=-1)
 
@@ -168,6 +171,9 @@ def convert_pandas_to_tensor(model, data):
         # channel should be on the second dimension
         features = np.transpose(features, (0, 3, 1, 2))
         labels = labels.values.reshape(num_dates, num_wards)
+    elif isinstance(model, rnn.RecurrentNeuralNetwork):
+        features = features.values.reshape(num_dates, num_wards, num_features)
+        labels = labels.values.reshape(num_dates, num_wards)
 
     features_tensor = torch.Tensor(features)
     labels_tensor = torch.Tensor(labels)
@@ -266,7 +272,7 @@ def train(model, train_data, batch_size, shuffle, epoch, optimizer, criterion):
         loss.backward()
         optimizer.step()
 
-        batch_acc = accuracy(out, target)
+        batch_acc = accuracy(out, target, model)
 
         losses.update(loss.item(), out.shape[0])
         acc.update(batch_acc, out.shape[0])
@@ -310,7 +316,7 @@ def validate(model, test_data, batch_size, shuffle, epoch, criterion):
             loss = criterion(out, torch.flatten(target).long())
 
         outputL.append(pd.DataFrame(out).idxmax(axis=1))
-        batch_acc = accuracy(out, target)
+        batch_acc = accuracy(out, target, model)
 
         # update confusion matrix
         _, preds = torch.max(out, 1)

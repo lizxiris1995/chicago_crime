@@ -57,6 +57,7 @@ class CrimePredictionApp(object):
     def _main_cnn(self, data, config):
 
         data = data.sort_values(by=['Date', 'Ward'])
+        data.fillna(0)
 
         num_features = len(feature_list)
         num_bin = int(np.nanmax(data['Bin'].unique()))
@@ -65,7 +66,13 @@ class CrimePredictionApp(object):
 
     def _main_rnn(self, data, config):
         # TODO:
-        raise NotImplementedError
+        data = data.sort_values(by=['Date', 'Ward'])
+        data.fillna(0)
+
+        num_features = len(feature_list)
+        num_bin = int(np.nanmax(data['Bin'].unique()))
+        model = rnn.RecurrentNeuralNetwork(num_features, num_bin)
+        train_model(model, data, self._output_dir, **config)
 
     @classmethod
     def from_toml(cls, file: str):
