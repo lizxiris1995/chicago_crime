@@ -4,7 +4,7 @@ import warnings
 import logging
 from libs.CrimePredictionApp import CrimePredictionApp
 
-warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

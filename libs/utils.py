@@ -210,6 +210,7 @@ def train_model(model,
     best_model = None
     idx_list = train_test_split(data)
     resultL = []
+    outputL = []
     for idx in range(len(idx_list)):
         ind = idx_list[idx]
         train_data = data[data['quarter_ind'].isin(ind[:2])]
@@ -217,7 +218,8 @@ def train_model(model,
 
         training_result = train(model, train_data, batch_size, shuffle, idx+1, optimizer, criterion)
 
-        acc, cm = validate(model, test_data, batch_size, shuffle, idx+1, criterion)
+        acc, cm, data_w_pred = validate(model, test_data, batch_size, shuffle, idx+1, criterion)
+        outputL.append(data_w_pred)
 
         result = training_result.copy()
         result['Testing Accuracy'] = acc.item()
@@ -228,7 +230,9 @@ def train_model(model,
             best_cm = cm
             best_model = copy.deepcopy(model)
     result = pd.concat(resultL, ignore_index=True)
-    result.to_csv(output_dir + f'/{model.model_name}.csv')
+    result.to_csv(output_dir + f'/{model.model_name}_accy.csv')
+
+    outputL[-1].to_csv(output_dir + f'/{model.model_name}_pred.csv')
 
     print('Best Prec @1 Acccuracy: {:.4f}'.format(best))
     per_cls_acc = best_cm.diag().detach().numpy().tolist()
@@ -294,6 +298,7 @@ def validate(model, test_data, batch_size, shuffle, epoch, criterion):
     data = convert_pandas_to_tensor(model, test_data)
     loader = DataLoader(data, batch_size=batch_size, shuffle=shuffle)
 
+    outputL = []
     for idx, (data, target) in enumerate(loader):
         target = target - 1
         if isinstance(model, cnn.ConvolutionalNetwork):
@@ -304,6 +309,7 @@ def validate(model, test_data, batch_size, shuffle, epoch, criterion):
             out = model(data)
             loss = criterion(out, torch.flatten(target).long())
 
+        outputL.append(pd.DataFrame(out).idxmax(axis=1))
         batch_acc = accuracy(out, target)
 
         # update confusion matrix
@@ -332,7 +338,9 @@ def validate(model, test_data, batch_size, shuffle, epoch, criterion):
 
     print("* Prec @1: {top1.avg:.4f}".format(top1=acc))
 
-    return acc.avg, cm
+    output = pd.concat(outputL, ignore_index=True)
+    test_data['Pred'] = list(output)
+    return acc.avg, cm, test_data
 
 
 def visualize():

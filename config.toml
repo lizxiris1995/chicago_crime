@@ -7,13 +7,13 @@ data_directory = "data/ASSAULT.csv"
 
 [proc]
     run_ffn             = true
-    run_cnn             = true
-    run_rnn             = true
+    run_cnn             = false
+    run_rnn             = false
 
 [config.ffn]
     batch_size          = 32
     shuffle             = true
-    learning_rate       = 0.001
+    learning_rate       = 0.01
     reg                 = 0.0005
     momentum            = 0.9
     loss_type           = 'Focal'
