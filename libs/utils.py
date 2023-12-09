@@ -64,7 +64,7 @@ class FocalLoss(nn.Module):
 def accuracy(output, target, model):
     """Computes the precision@k for the specified values of k"""
     batch_size = target.shape[0]
-    if isinstance(model, rnn.RecurrentNeuralNetwork):
+    if isinstance(model, rnn.RecurrentNeuralNetwork) or isinstance(model, fnn.FeedforwardNetwork):
         batch_size = batch_size*num_wards
 
     _, pred = torch.max(output, dim=-1)
@@ -164,8 +164,8 @@ def convert_pandas_to_tensor(model, data):
     num_wards = len(data['Ward'].unique())
     num_features = len(feature_list)
     if isinstance(model, fnn.FeedforwardNetwork):
-        features = features.values.reshape((num_dates*num_wards, num_features))
-        labels = labels.values.reshape(num_dates*num_wards, 1)
+        features = features.values.reshape((num_dates, num_wards*num_features))
+        labels = labels.values.reshape(num_dates, num_wards)
     elif isinstance(model, cnn.ConvolutionalNetwork):
         features = features.values.reshape((num_dates, 5, 10, num_features))
         # channel should be on the second dimension
