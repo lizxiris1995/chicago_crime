@@ -39,3 +39,6 @@ data_directory = "data/ASSAULT.csv"
     loss_type           = 'Focal'
     save_best           = true
     beta                = 0.999
+    model_type          = 'GRU'
+    dropout             = 0.2
+    num_layer           = 1
