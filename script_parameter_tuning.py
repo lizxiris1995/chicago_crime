@@ -8,22 +8,23 @@ from libs.CrimePredictionApp import CrimePredictionApp
 
 warnings.filterwarnings("ignore")
 
-models = ['ffn', 'cnn', 'rnn']
+models = ['ffn', 'cnn']
 
 data_dirs = ["data/ASSAULT.csv", "data/BATTERY.csv", "data/CRIMINAL DAMAGE.csv", "data/NARCOTICS.csv", "data/THEFT.csv"]
 
 batch_sizes = [4, 8, 16, 32, 64]
 learning_rates = [0.1, 0.01, 0.001, 0.0001]
+momentums = [0.9, 0.95, 0.99]
 regs = [0.0005, 0.001, 0.05, 0.1, 1, 10]
 betas = [1.005, 0.999, 0.995, 0.99]
 
-params = [data_dirs, batch_sizes, learning_rates, regs, betas]
+params = [data_dirs, batch_sizes, learning_rates, momentums, regs, betas]
 param_list = list(itertools.product(*params))
 
 
 default_config = toml.load('config.toml')
 for model in models:
-    keys = ['batch_size', 'learning_rate', 'reg', 'beta']
+    keys = ['batch_size', 'learning_rate', 'momentum', 'reg', 'beta']
     config = default_config.copy()
     if model == 'ffn':
         config["proc"]["run_ffn"] = True
@@ -33,10 +34,6 @@ for model in models:
         config["proc"]["run_ffn"] = False
         config["proc"]["run_cnn"] = True
         config["proc"]["run_rnn"] = False
-    elif model == 'rnn':
-        config["proc"]["run_ffn"] = False
-        config["proc"]["run_cnn"] = False
-        config["proc"]["run_rnn"] = True
 
     best_models = []
     for param in param_list:
