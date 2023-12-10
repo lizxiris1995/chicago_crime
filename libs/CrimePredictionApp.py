@@ -80,7 +80,8 @@ class CrimePredictionApp(object):
 
         num_features = len(feature_list)
         num_bin = int(np.nanmax(data['Bin'].unique()))
-        model = rnn.RecurrentNeuralNetwork(num_features, num_bin)
+        model = rnn.RecurrentNeuralNetwork(num_features, num_bin, model_type=config['model_type'],
+                                           num_layers=config['num_layer'], dropout=config['dropout'])
         best_model = train_model(model, data, self._output_dir, **config)
 
         return best_model

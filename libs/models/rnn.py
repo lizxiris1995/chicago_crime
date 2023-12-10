@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 
 class RecurrentNeuralNetwork(nn.Module):
-    def __init__(self, input_dim, num_classes, hidden_size=32, num_layers=1, dropout=0.2):
+    def __init__(self, input_dim, num_classes, hidden_size=32, num_layers=1, dropout=0.2, model_type='RNN'):
         """
         :param input_dim:
         :param num_classes:
@@ -15,8 +15,12 @@ class RecurrentNeuralNetwork(nn.Module):
         self.input_dim = input_dim
         self.num_classes = num_classes
         self.num_wards = 50
-
-        self.rnn = nn.RNN(input_dim, hidden_size, num_layers, batch_first=True, dropout=dropout)
+        if model_type == 'RNN':
+            self.rnn = nn.RNN(input_dim, hidden_size, num_layers, batch_first=True, dropout=dropout)
+        elif model_type == 'LSTM':
+            self.rnn = nn.LSTM(input_dim, hidden_size, num_layers, batch_first=True, dropout=dropout)
+        elif model_type == 'GRU':
+            self.rnn = nn.GRU(input_dim, hidden_size, num_layers, batch_first=True, dropout=dropout)
         self.linear = nn.Linear(hidden_size*self.num_wards, self.num_wards*self.num_classes)
         self.activation = nn.Sigmoid()
         self.softmax = nn.Softmax(dim=1)

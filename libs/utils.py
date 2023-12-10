@@ -192,7 +192,10 @@ def train_model(model,
                 momentum=0.9,
                 loss_type='CE',
                 save_best=True,
-                beta=0.999):
+                beta=0.999,
+                model_type='',
+                num_layer=1,
+                dropout=0):
     data['Bin'] = data['Bin'].fillna(1)
     data = data.fillna(0)
     # data[feature_list] = (data[feature_list]-data[feature_list].mean())/data[feature_list].std()
