@@ -24,14 +24,14 @@ class ConvolutionalNetwork(nn.Module):
 
     def forward(self, x):
         batch_size = x.shape[0]
-        x = self.activation(self.conv1(x))
-        x = self.maxpool1(x)
-        x = self.activation(self.conv2(x))
-        x = torch.reshape(x, (batch_size, -1))
-        x = self.activation(self.linear1(x))
-        x = torch.reshape(x, (-1, self.num_classes))
-        x = self.softmax(x)
-        return x
+        out = self.activation(self.conv1(x))
+        out = self.maxpool1(out)
+        out = self.activation(self.conv2(out))
+        out = torch.reshape(out, (batch_size, -1))
+        out = self.activation(self.linear1(out))
+        out = torch.reshape(out, (-1, self.num_classes))
+        out = self.softmax(out)
+        return out
 
     @property
     def model_name(self):
